@@ -1,6 +1,9 @@
 package picturecross
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 type Value int
 
@@ -37,7 +40,9 @@ func (c Cell) String() string {
 type Settings []int
 
 type Board struct {
-	cells [][]Cell
+	cells       [][]Cell
+	rowSettings []Settings
+	colSettings []Settings
 }
 
 func NewBoardFromSettings(rowSettings, colSettings []Settings) *Board {
@@ -48,39 +53,68 @@ func NewBoardFromSettings(rowSettings, colSettings []Settings) *Board {
 	}
 
 	return &Board{
-		cells: cells,
+		cells:       cells,
+		rowSettings: rowSettings,
+		colSettings: colSettings,
 	}
 }
 
 func (b Board) String() string {
+	if len(b.cells) == 0 {
+		return "<empty>"
+	}
+
+	maxRowSettings := maxSettingsLength(b.rowSettings)
+	maxColSettings := maxSettingsLength(b.colSettings)
+
 	s := strings.Builder{}
 
-	if len(b.cells) == 0 {
-		// Draw empty board.
-		s.WriteString(strings.Repeat("─", 2))
-		s.WriteString("\n")
-		s.WriteString(strings.Repeat("│", 2))
-		s.WriteString("\n")
-		s.WriteString(strings.Repeat("─", 2))
-		s.WriteString("\n")
-	} else {
-		s.WriteString(strings.Repeat("─", len(b.cells[0])+2))
-		s.WriteString("\n")
-
-		for _, r := range b.cells {
-			s.WriteString("│")
-			for _, c := range r {
-				s.WriteString(c.String())
+	// ColSettings at the top
+	for i := 0; i < maxColSettings; i++ {
+		// Padding for row settings
+		s.WriteString(strings.Repeat(" ", maxRowSettings))
+		s.WriteString("│")
+		for _, ss := range b.colSettings {
+			idx := i + len(ss) - maxColSettings
+			if idx < 0 {
+				s.WriteString(" ")
+			} else {
+				s.WriteString(strconv.Itoa(ss[idx]))
 			}
+		}
+		s.WriteString("\n")
+	}
 
-			s.WriteString("│")
-			s.WriteString("\n")
+	s.WriteString(strings.Repeat("─", len(b.cells[0])+1+maxRowSettings))
+	s.WriteString("\n")
+
+	for rowIdx, r := range b.cells {
+		if len(b.rowSettings[rowIdx]) < maxRowSettings {
+			s.WriteString(strings.Repeat(" ", maxRowSettings-len(b.rowSettings[rowIdx])))
 		}
 
-		// Overline
-		s.WriteString(strings.Repeat("─", len(b.cells[0])+2))
+		for _, sv := range b.rowSettings[rowIdx] {
+			s.WriteString(strconv.Itoa(sv))
+		}
+
+		s.WriteString("│")
+		for _, c := range r {
+			s.WriteString(c.String())
+		}
+
 		s.WriteString("\n")
 	}
 
 	return s.String()
+}
+
+func maxSettingsLength(s []Settings) int {
+	maxLength := 0
+	for _, ss := range s {
+		if len(ss) > maxLength {
+			maxLength = len(ss)
+		}
+	}
+
+	return maxLength
 }

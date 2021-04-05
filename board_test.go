@@ -10,23 +10,29 @@ func TestBoardString(t *testing.T) {
 	}{
 		{
 			board: &Board{},
-			st: "──\n" +
-				"││\n" +
-				"──\n",
+			st:    "<empty>",
 		},
 		{
 			board: NewBoardFromSettings([]Settings{{1}, {1}}, []Settings{{1}, {1}, {1}}),
-			st: "─────\n" +
-				"│   │\n" +
-				"│   │\n" +
-				"─────\n",
+			st: " │111\n" +
+				"─────\n" +
+				"1│   \n" +
+				"1│   \n",
+		},
+		{
+			board: NewBoardFromSettings([]Settings{{1, 1}, {1}}, []Settings{{1, 1}, {1}, {1}}),
+			st: "  │1  \n" +
+				"  │111\n" +
+				"─────\n" +
+				"11│   \n" +
+				" 1│   \n",
 		},
 	}
 
 	for i, test := range tests {
 		str := test.board.String()
 		if str != test.st {
-			t.Errorf("test case %d did not give the expected result. Expected:\n%qfound:\n%q", i, test.st, str)
+			t.Errorf("test case %d did not give the expected result. Expected:\n%sfound:\n%s", i, test.st, str)
 		}
 	}
 }
